@@ -10,7 +10,7 @@ import os
 
 while True:
     path = input('''
-Ingresa el path de tu archivo
+Ingresa el path de tu archivo (.jpg, .jpeg)
 ''')
     if os.path.exists(path):
         break
