@@ -397,3 +397,11 @@ void GUI_INTRO(){
 	        }
 	    }
 }
+
+void GUI_IMG(){
+    for (int y = 0; y < 128; y++){
+        for (int x = 0; x < 128; x ++){
+            GUI_DrawPoint(x, y, booster[y][x], DOT_PIXEL_1X1, DOT_FILL_AROUND);
+        }
+    }
+}

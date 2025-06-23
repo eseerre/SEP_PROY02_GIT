@@ -12,8 +12,8 @@
 #include <stdlib.h>		//itoa()
 #include <stdio.h>
 
-XSpi  SpiInstance;	 /* The instance of the SPI device */
-XGpio gpio0;
+XSpi  SPI_LCD;	 /* The instance of the SPI device */
+XGpio GPIO_LCD;
 
 LCD_DIS sLCD_DIS;
 
@@ -44,13 +44,15 @@ function:
 static void LCD_WriteReg(uint8_t Reg)
 {
 	DC_LOW();
-    SPI_Write(&SpiInstance,Reg);
+    SPI_Write(&SPI_LCD
+    ,Reg);
 }
 
 static void LCD_WriteData_8Bit(uint8_t Data)
 {
 	DC_HIGH();
-    SPI_Write(&SpiInstance,Data);
+    SPI_Write(&SPI_LCD
+    ,Data);
 }
 
 
@@ -59,8 +61,10 @@ static void LCD_WriteData_NLen16Bit(uint16_t Data,uint32_t DataLen)
     uint32_t i;
     DC_HIGH();
     for(i = 0; i < DataLen; i++) {
-        SPI_Write(&SpiInstance, (uint8_t)(Data >> 8) );
-        SPI_Write(&SpiInstance, (uint8_t)(Data & 0XFF) );
+        SPI_Write(&SPI_LCD
+        , (uint8_t)(Data >> 8) );
+        SPI_Write(&SPI_LCD
+        , (uint8_t)(Data & 0XFF) );
     }
 }
 
@@ -365,29 +369,29 @@ void LCD_Clear(COLOR  Color)
 
 void DC_OUTPUT(void)
 {
-	XGpio_SetDataDirection(&gpio0, DC_pin, 0x00);	// Set as output 0x00
+	XGpio_SetDataDirection(&GPIO_LCD, DC_pin, 0x00);	// Set as output 0x00
 }
 void DC_LOW(void)
 {
-	XGpio_DiscreteWrite(&gpio0, DC_pin, 0x00);		// Clear output (LOW)
+	XGpio_DiscreteWrite(&GPIO_LCD, DC_pin, 0x00);		// Clear output (LOW)
 }
 void DC_HIGH(void)
 {
-	XGpio_DiscreteWrite(&gpio0, DC_pin, 0x01);		// Clear output (LOW)
+	XGpio_DiscreteWrite(&GPIO_LCD, DC_pin, 0x01);		// Clear output (LOW)
 }
 
 void RST_OUTPUT(void)
 {
-	XGpio_SetDataDirection(&gpio0, RST_pin, 0x00);	// Set as output 0x00
+	XGpio_SetDataDirection(&GPIO_LCD, RST_pin, 0x00);	// Set as output 0x00
 
 }
 void RST_LOW(void)
 {
-	XGpio_DiscreteWrite(&gpio0, RST_pin, 0x00);		// Clear output (LOW)
+	XGpio_DiscreteWrite(&GPIO_LCD, RST_pin, 0x00);		// Clear output (LOW)
 }
 void RST_HIGH(void)
 {
-	XGpio_DiscreteWrite(&gpio0, RST_pin, 0x01);		// Clear output (LOW)
+	XGpio_DiscreteWrite(&GPIO_LCD, RST_pin, 0x01);		// Clear output (LOW)
 
 }
 

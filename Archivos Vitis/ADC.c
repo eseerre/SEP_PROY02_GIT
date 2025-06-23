@@ -1,5 +1,5 @@
 #include "ADC.h"
-XSpi SpiInstance1;
+XSpi SPI_ADC;
 typedef u8 DataBuffer[BUFFER_SIZE_ADC];
 
 
@@ -39,7 +39,7 @@ int read_joyx(){
 	u8 ReadBufferX[BUFFER_SIZE_ADC] = { 0x00, 0x00 };
 	u16 ejeX;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferX, ReadBufferX,
+		XSpi_Transfer(&SPI_ADC, WriteBufferX, ReadBufferX,
 				BUFFER_SIZE_ADC);
 		ejeX = ReadBufferX[0] / 2 + ReadBufferX[1] * 128;
 	}
@@ -50,7 +50,7 @@ int read_joyy(){
 	u8 ReadBufferY[BUFFER_SIZE_ADC] = { 0x08, 0x08 };
 	u16 ejeY;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferY, ReadBufferY,
+		XSpi_Transfer(&SPI_ADC, WriteBufferY, ReadBufferY,
 				BUFFER_SIZE_ADC);
 		ejeY = ReadBufferY[0] / 2 + ReadBufferY[1] * 128;
 	}
@@ -62,7 +62,7 @@ int read_acx(){
 	u8 ReadBufferACX[BUFFER_SIZE_ADC] = { 0x10, 0x10 };
 	u16 ejeACX;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferACX, ReadBufferACX,
+		XSpi_Transfer(&SPI_ADC, WriteBufferACX, ReadBufferACX,
 				BUFFER_SIZE_ADC);
 		ejeACX = ReadBufferACX[0] / 2 + ReadBufferACX[1] * 128;
 	}
@@ -74,7 +74,7 @@ int read_acy(){
 	u8 ReadBufferACY[BUFFER_SIZE_ADC] = { 0x18, 0x18 };
 	u16 ejeACY;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferACY, ReadBufferACY,
+		XSpi_Transfer(&SPI_ADC, WriteBufferACY, ReadBufferACY,
 				BUFFER_SIZE_ADC);
 		ejeACY = ReadBufferACY[0] / 2 + ReadBufferACY[1] * 128;
 	}
@@ -86,7 +86,7 @@ int read_acz(){
 	u8 ReadBufferACZ[BUFFER_SIZE_ADC] = { 0x20, 0x20 };
 	u16 ejeACZ;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferACZ, ReadBufferACZ,
+		XSpi_Transfer(&SPI_ADC, WriteBufferACZ, ReadBufferACZ,
 				BUFFER_SIZE_ADC);
 		ejeACZ = ReadBufferACZ[0] / 2 + ReadBufferACZ[1] * 128;
 	}
@@ -99,7 +99,7 @@ int read_POT1(){
 	u8 ReadBufferACZ[BUFFER_SIZE_ADC] = { 0x30, 0x30 };
 	u16 POT1;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferACZ, ReadBufferACZ,
+		XSpi_Transfer(&SPI_ADC, WriteBufferACZ, ReadBufferACZ,
 				BUFFER_SIZE_ADC);
 		POT1 = ReadBufferACZ[0] / 2 + ReadBufferACZ[1] * 128;
 	}
@@ -112,7 +112,7 @@ int read_POT2(){
 	u8 ReadBufferACZ[BUFFER_SIZE_ADC] = { 0x38, 0x38 };
 	u16 POT2;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferACZ, ReadBufferACZ,
+		XSpi_Transfer(&SPI_ADC, WriteBufferACZ, ReadBufferACZ,
 				BUFFER_SIZE_ADC);
 		POT2 = ReadBufferACZ[0] / 2 + ReadBufferACZ[1] * 128;
 	}
@@ -125,7 +125,7 @@ int read_MIC(){
 	u8 ReadBufferACZ[BUFFER_SIZE_ADC] = { 0x28, 0x28 };
 	u16 MIC;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SpiInstance1, WriteBufferACZ, ReadBufferACZ,
+		XSpi_Transfer(&SPI_ADC, WriteBufferACZ, ReadBufferACZ,
 				BUFFER_SIZE_ADC);
 		MIC = ReadBufferACZ[0] / 2 + ReadBufferACZ[1] * 128;
 	}
