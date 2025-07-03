@@ -44,15 +44,13 @@ function:
 static void LCD_WriteReg(uint8_t Reg)
 {
 	DC_LOW();
-    SPI_Write(&SPI_LCD
-    ,Reg);
+    SPI_Write(&SPI_LCD,Reg);
 }
 
 static void LCD_WriteData_8Bit(uint8_t Data)
 {
 	DC_HIGH();
-    SPI_Write(&SPI_LCD
-    ,Data);
+    SPI_Write(&SPI_LCD,Data);
 }
 
 
@@ -61,10 +59,8 @@ static void LCD_WriteData_NLen16Bit(uint16_t Data,uint32_t DataLen)
     uint32_t i;
     DC_HIGH();
     for(i = 0; i < DataLen; i++) {
-        SPI_Write(&SPI_LCD
-        , (uint8_t)(Data >> 8) );
-        SPI_Write(&SPI_LCD
-        , (uint8_t)(Data & 0XFF) );
+        SPI_Write(&SPI_LCD, (uint8_t)(Data >> 8) );
+        SPI_Write(&SPI_LCD, (uint8_t)(Data & 0XFF) );
     }
 }
 

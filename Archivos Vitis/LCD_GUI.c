@@ -392,16 +392,21 @@ void GUI_Show(void)
 void GUI_INTRO(){
 	for (int y = 0; y < 128; y++) {
 	        for (int x = 0; x < 128; x++) {
-	            // Aquï¿½ puedes ajustar el tamaï¿½o del punto y el color si es necesario.
+	            // Aquí puedes ajustar el tamaño del punto y el color si es necesario.
 	            GUI_DrawPoint(x, y, intro[y][x], DOT_PIXEL_1X1, DOT_FILL_AROUND);
 	        }
 	    }
 }
 
 void GUI_IMG(){
-    for (int y = 0; y < 128; y++){
-        for (int x = 0; x < 128; x ++){
-            GUI_DrawPoint(x, y, booster[y][x], DOT_PIXEL_1X1, DOT_FILL_AROUND);
-        }
-    }
+	for (int y = 0; y < 128; y++) {
+	        for (int x = 0; x < 128; x++) {
+	            // Aquí puedes ajustar el tamaño del punto y el color si es necesario.
+	            GUI_DrawPoint(x, y, booster[y][x], DOT_PIXEL_1X1, DOT_FILL_AROUND);
+	        }
+	    }
 }
+
+
+
+

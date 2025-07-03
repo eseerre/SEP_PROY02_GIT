@@ -4,7 +4,7 @@ typedef u8 DataBuffer[BUFFER_SIZE_ADC];
 
 
 int init_adc(XSpi *SpiInstancePtr, u16 SpiDeviceId) {
-
+//TESTEO LOCURA
 	int Status;
 
 	XSpi_Config *ConfigPtr; /* Pointer to Configuration data */
@@ -95,39 +95,39 @@ int read_acz(){
 }
 
 int read_POT1(){
-	u8 WriteBufferACZ[BUFFER_SIZE_ADC] = { 0x30, 0x30 };
-	u8 ReadBufferACZ[BUFFER_SIZE_ADC] = { 0x30, 0x30 };
+	u8 WriteBufferPOT1[BUFFER_SIZE_ADC] = { 0x30, 0x30 };
+	u8 ReadBufferPOT1[BUFFER_SIZE_ADC] = { 0x30, 0x30 };
 	u16 POT1;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SPI_ADC, WriteBufferACZ, ReadBufferACZ,
+		XSpi_Transfer(&SPI_ADC, WriteBufferPOT1, ReadBufferPOT1,
 				BUFFER_SIZE_ADC);
-		POT1 = ReadBufferACZ[0] / 2 + ReadBufferACZ[1] * 128;
+		POT1 = ReadBufferPOT1[0] / 2 + ReadBufferPOT1[1] * 128;
 	}
 	return POT1;
 
 }
 
 int read_POT2(){
-	u8 WriteBufferACZ[BUFFER_SIZE_ADC] = { 0x38, 0x38 };
-	u8 ReadBufferACZ[BUFFER_SIZE_ADC] = { 0x38, 0x38 };
+	u8 WriteBufferPOT2[BUFFER_SIZE_ADC] = { 0x38, 0x38 };
+	u8 ReadBufferPOT2[BUFFER_SIZE_ADC] = { 0x38, 0x38 };
 	u16 POT2;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SPI_ADC, WriteBufferACZ, ReadBufferACZ,
+		XSpi_Transfer(&SPI_ADC, WriteBufferPOT2, ReadBufferPOT2,
 				BUFFER_SIZE_ADC);
-		POT2 = ReadBufferACZ[0] / 2 + ReadBufferACZ[1] * 128;
+		POT2 = ReadBufferPOT2[0] / 2 + ReadBufferPOT2[1] * 128;
 	}
 	return POT2;
 
 }
 
 int read_MIC(){
-	u8 WriteBufferACZ[BUFFER_SIZE_ADC] = { 0x28, 0x28 };
-	u8 ReadBufferACZ[BUFFER_SIZE_ADC] = { 0x28, 0x28 };
+	u8 WriteBufferMIC[BUFFER_SIZE_ADC] = { 0x28, 0x28 };
+	u8 ReadBufferMIC[BUFFER_SIZE_ADC] = { 0x28, 0x28 };
 	u16 MIC;
 	for (int i = 0; i < 2; i++) {
-		XSpi_Transfer(&SPI_ADC, WriteBufferACZ, ReadBufferACZ,
+		XSpi_Transfer(&SPI_ADC, WriteBufferMIC, ReadBufferMIC,
 				BUFFER_SIZE_ADC);
-		MIC = ReadBufferACZ[0] / 2 + ReadBufferACZ[1] * 128;
+		MIC = ReadBufferMIC[0] / 2 + ReadBufferMIC[1] * 128;
 	}
 	return MIC;
 
