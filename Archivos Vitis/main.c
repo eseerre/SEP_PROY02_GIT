@@ -30,9 +30,11 @@
 
 #define RESET_VALUE_SLOW	0xFA000000
 #define RESET_VALUE_FAST	0xFF2F0000
+#define RESET_VALUE_VFAST	0xFFF00000
 
 
-
+int timer_next_done = 0;
+void timer_next(void *CallbackRef);
 void btn_b0_inicio(void *CallbackRef);
 void btn_b1_inicio(void *CallbackRef);
 void tmr_inicio();
@@ -46,6 +48,17 @@ void btn_b0_fast_mode(void *CallbackRef);
 void btn_b1_fast_mode(void *CallbackRef);
 void btn_bjs_fast_mode(void *CallbackRef);
 
+void btn_z0_slow_mode(void *CallbackRef);
+void btn_z1_slow_mode(void *CallbackRef);
+void btn_z2_slow_mode(void *CallbackRef);
+void btn_z3_slow_mode(void *CallbackRef);
+
+void btn_b0_slow_mode(void *CallbackRef);
+void btn_b1_slow_mode(void *CallbackRef);
+void btn_bjs_slow_mode(void *CallbackRef);
+
+void wait(void *CallbackRef);
+
 void quick_peripherals(void *CallbackRef);
 void slow_peripherals(void *CallbackRef);
 
@@ -57,7 +70,12 @@ int menu_inicio();
 
 int test_rapido();
 
+void test_lento();
 
+void joy_pot (void *CallbackRef);
+
+int max(int num1, int num2);
+int min(int num1, int num2);
 
 XTmrCtr TMR_SLOW;
 XTmrCtr TMR_FAST;
@@ -72,10 +90,23 @@ XScuGic GIC;
 
 int booster_0;
 int booster_1;
+int booster_js;
+int zybo_0;
+int zybo_1;
+int zybo_2;
+int zybo_3;
+
 int timeout_menu_inicial;
+int timer_slow_tests;
 
 char joyx[16] = {};
 char joyy[16] = {};
+int joyx_min = 512;
+int joyx_max = 512;
+int joyy_min = 512;
+int joyy_max = 512;
+int joyy_int;
+int joyx_int;
 
 char acx[16] = {};
 char acy[16] = {};
@@ -83,6 +114,13 @@ char acz[16] = {};
 
 char pot1[16] = {};
 char pot2[16] = {};
+int pot1_min = 500;
+int pot1_max = 500;
+int pot2_min = 500;
+int pot2_max = 500;
+int pot1_int;
+int pot2_int;
+
 
 char mic[16] = {};
 char temp[16] = {};
@@ -101,7 +139,7 @@ int main(){
 		return -1;
 	}
 	else if (sel_inicio == 0){
-		//test_botones();
+		test_lento();
 		return 0;
 	}
 	else{
@@ -252,7 +290,6 @@ int menu_inicio(){
 	}
 }
 
-//int paso_a_paso(){}
 
 int test_rapido(){
 
@@ -262,11 +299,12 @@ int test_rapido(){
 	GUI_DisString_EN(22,24, "botones", &Font12, GUI_BACKGROUND,CYAN);
 	GUI_DisString_EN(15,40, "solo una vez", &Font12, GUI_BACKGROUND,CYAN);
 	delay_ms(1000);
-	Xil_Out32(XPAR_AXI_CONNECTIONS_0_S00_AXI_BASEADDR + 8, 0xFFFFFFFF); //Encender Buzzer
+	Xil_Out32(XPAR_BUZZER_AXI_0_S00_AXI_BASEADDR + 8, 0x0); //Encender Buzzer
+	Xil_Out32(XPAR_BUZZER_AXI_0_S00_AXI_BASEADDR, 0xFFFFFFFF); //Encender Buzzer
 	LCD_Clear(WHITE);
-	delay_ms(2300);
+	delay_ms(20000);
 	LCD_Clear(GUI_BACKGROUND);
-	Xil_Out32(XPAR_AXI_CONNECTIONS_0_S00_AXI_BASEADDR + 8, 0x0); //Apagar Buzzer
+	Xil_Out32(XPAR_BUZZER_AXI_0_S00_AXI_BASEADDR, 0x0); //Apagar Buzzer
 
 	// Mostrar todo:
 	GUI_DisString_EN(0, 2, "Zybo Z7-10", &Font16, GUI_BACKGROUND, WHITE); //Seccion Zybo
@@ -524,4 +562,281 @@ void tmr_inicio (){
 	XScuGic_Disable(&GIC, INT_ID_BTN_B0);
 	XScuGic_Disable(&GIC, INT_ID_BTN_B1);
 	XTmrCtr_Stop(&TMR_SLOW, 0);
+}
+
+void test_lento (){
+	// Seleccionar cancion por uart
+	// Timer en caso de que no se conecte
+	int status = XST_FAILURE;
+	int sw;
+	int sw0;
+	int sw1;
+	int sw2;
+	int sw3;
+
+	GUI_DisString_EN(0, 2, "Zybo Z7", &Font20, GUI_BACKGROUND, WHITE); //Seccion Zybo
+
+	GUI_DisString_EN(2, 26, "BTN0", &Font16, GUI_BACKGROUND, BLUE); //BTN0
+	GUI_DisString_EN(2, 45, "BTN1", &Font16, GUI_BACKGROUND, BLUE); //BTN1
+	GUI_DisString_EN(2, 64, "BTN2", &Font16, GUI_BACKGROUND, BLUE); //BTN2
+	GUI_DisString_EN(2, 83, "BTN3", &Font16, GUI_BACKGROUND, BLUE); //BTN3
+
+	GUI_DisString_EN(47, 26, "SW0", &Font16, GUI_BACKGROUND, RED); //SW0
+	GUI_DisString_EN(47, 45, "SW1", &Font16, GUI_BACKGROUND, RED); //SW1
+	GUI_DisString_EN(47, 64, "SW2", &Font16, GUI_BACKGROUND, RED); //SW2
+	GUI_DisString_EN(47, 83, "SW3", &Font16, GUI_BACKGROUND, RED); //SW3
+	
+
+	GUI_DisString_EN(84, 26, "BTN0", &Font16, GUI_BACKGROUND, BLUE); //BTN0
+	GUI_DisString_EN(84, 45, "BTN1", &Font16, GUI_BACKGROUND, BLUE); //BTN1
+	GUI_DisString_EN(84, 64, "B JS", &Font16, GUI_BACKGROUND, BLUE); //BTN JS
+
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_BTN_Z0, (Xil_InterruptHandler) btn_z0_slow_mode, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_BTN_Z0);
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_BTN_Z1, (Xil_InterruptHandler) btn_z1_slow_mode, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_BTN_Z1);
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_BTN_Z2, (Xil_InterruptHandler) btn_z2_slow_mode, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_BTN_Z2);
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_BTN_Z3, (Xil_InterruptHandler) btn_z3_slow_mode, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_BTN_Z3);
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_BTN_B0, (Xil_InterruptHandler) btn_b0_slow_mode, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_BTN_B0);
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_BTN_B1, (Xil_InterruptHandler) btn_b1_slow_mode, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_BTN_B1);
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_BTN_BJS, (Xil_InterruptHandler) btn_bjs_slow_mode, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_BTN_BJS);
+	status = 1;
+	while (status != XST_SUCCESS){
+		status = XScuGic_Connect(&GIC, INT_ID_TMR_SLOW, (Xil_InterruptHandler) timer_next, NULL);
+		}
+	XScuGic_Enable(&GIC, INT_ID_TMR_SLOW);
+	XTmrCtr_SetResetValue(&TMR_SLOW, 0, 0x80000000);
+	XTmrCtr_Start(&TMR_SLOW, 0);
+	while(timer_next_done != 1){
+		sw = XGpio_DiscreteRead(&GPIO_SW, 1);
+		sw0 = sw % 2;
+		sw1 = ((sw - sw0) / 2) % 2;
+		sw2 = (((sw - sw0) / 2 - sw1) / 2) % 2;
+		sw3 = (((((sw - sw0) / 2 - sw1) / 2) - sw2) / 2) % 2;
+		if (sw0 == 1){
+			GUI_DisString_EN(47, 26, "SW0", &Font16, GUI_BACKGROUND, GREEN); //SW0
+		}
+		else{
+			GUI_DisString_EN(47, 26, "SW0", &Font16, GUI_BACKGROUND, RED); //SW0
+		}
+		if (sw1 == 1){
+			GUI_DisString_EN(47, 45, "SW1", &Font16, GUI_BACKGROUND, GREEN); //SW1
+		}
+		else{
+			GUI_DisString_EN(47, 45, "SW1", &Font16, GUI_BACKGROUND, RED); //SW1
+		}
+		if (sw2 == 1){
+			GUI_DisString_EN(47, 64, "SW2", &Font16, GUI_BACKGROUND, GREEN); //SW2
+		}
+		else{
+			GUI_DisString_EN(47, 64, "SW2", &Font16, GUI_BACKGROUND, RED); //SW2
+		}
+		if (sw3 ==1){
+			GUI_DisString_EN(47, 83, "SW3", &Font16, GUI_BACKGROUND, GREEN); //SW3
+		}
+		else{
+			GUI_DisString_EN(47, 83, "SW3", &Font16, GUI_BACKGROUND, RED); //SW3
+		}
+	}
+	XTmrCtr_Stop(&TMR_SLOW, 0);
+	timer_next_done = 0;
+
+	XScuGic_Disable(&GIC, INT_ID_BTN_Z0);
+	XScuGic_Disable(&GIC, INT_ID_BTN_Z1);
+	XScuGic_Disable(&GIC, INT_ID_BTN_Z2);
+	XScuGic_Disable(&GIC, INT_ID_BTN_Z3);
+
+	XScuGic_Disable(&GIC, INT_ID_BTN_B0);
+	XScuGic_Disable(&GIC, INT_ID_BTN_B1);
+	XScuGic_Disable(&GIC, INT_ID_BTN_BJS);
+
+	LCD_Clear(GUI_BACKGROUND);
+	GUI_DisString_EN(15, 2, "BOOSTER", &Font20, GUI_BACKGROUND, WHITE); //Seccion Booster
+
+	GUI_DisString_EN(20, 20, "Joystick", &Font16, GUI_BACKGROUND, WHITE); //Joystick
+
+	GUI_DisString_EN(32, 35, "X", &Font12, GUI_BACKGROUND, WHITE); //Valores Joystick
+	GUI_DisString_EN(96, 35, "Y", &Font12, GUI_BACKGROUND, WHITE);
+
+
+	GUI_DisString_EN(42, 75, "POTs", &Font16, GUI_BACKGROUND, WHITE); //Potenciometro
+
+	GUI_DisString_EN(32, 90, "I", &Font12, GUI_BACKGROUND, WHITE); //Valores Potenciometro
+	GUI_DisString_EN(96, 90, "D", &Font12, GUI_BACKGROUND, WHITE);
+	status = XST_FAILURE;
+	while (status != XST_SUCCESS){
+			status = XScuGic_Connect(&GIC, INT_ID_TMR_FAST, (Xil_InterruptHandler) joy_pot, NULL);
+			}
+	XScuGic_Enable(&GIC, INT_ID_TMR_FAST);
+	XTmrCtr_SetResetValue(&TMR_FAST, 0, RESET_VALUE_VFAST);
+	XTmrCtr_Start(&TMR_SLOW, 0);
+	XTmrCtr_Start(&TMR_FAST, 0);
+
+	while(timer_next_done != 1);
+	XTmrCtr_Stop(&TMR_FAST, 0);
+
+	GUI_DisString_EN(20, 55, joyx, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+	GUI_DisString_EN(84, 55, joyy, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+
+	GUI_DisString_EN(20, 110, pot1, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+	GUI_DisString_EN(84, 110, pot2, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+
+	GUI_DisString_EN(10, 48, "min", &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(73, 48, "min", &Font12, GUI_BACKGROUND, WHITE);
+
+	GUI_DisString_EN(10, 62, "max", &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(73, 62, "max", &Font12, GUI_BACKGROUND, WHITE);
+
+	GUI_DisString_EN(10, 103, "min", &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(73, 103, "min", &Font12, GUI_BACKGROUND, WHITE);
+
+	GUI_DisString_EN(10, 117, "max", &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(73, 117, "max", &Font12, GUI_BACKGROUND, WHITE);
+
+	sprintf(joyx, "%d", joyx_min);
+	sprintf(joyy, "%d", joyy_min);
+	GUI_DisString_EN(34, 48, joyx, &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(98, 48, joyy, &Font12, GUI_BACKGROUND, WHITE);
+
+	sprintf(joyx, "%d", joyx_max);
+	sprintf(joyy, "%d", joyy_max);
+	GUI_DisString_EN(34, 62, joyx, &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(98, 62, joyy, &Font12, GUI_BACKGROUND, WHITE);
+
+	sprintf(pot1, "%d", pot1_min);
+	sprintf(pot2, "%d", pot2_min);
+	GUI_DisString_EN(34, 103, pot1, &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(98, 103, pot2, &Font12, GUI_BACKGROUND, WHITE);
+
+	sprintf(pot1, "%d", pot1_max);
+	sprintf(pot2, "%d", pot2_max);
+	GUI_DisString_EN(34, 117, pot1, &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(98, 117, pot2, &Font12, GUI_BACKGROUND, WHITE);
+
+	delay_ms(1000);
+
+	Xil_Out32(XPAR_BUZZER_AXI_0_S00_AXI_BASEADDR + 8, 0x0); //Encender Buzzer
+	Xil_Out32(XPAR_BUZZER_AXI_0_S00_AXI_BASEADDR, 0xFFFFFFFF);
+
+
+
+
+
+}
+
+void joy_pot (void *CallbackRef){
+	XTmrCtr_Stop(&TMR_FAST, 0);
+	XTmrCtr_Reset(&TMR_FAST, 0);
+
+	GUI_DisString_EN(20, 55, joyx, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+	GUI_DisString_EN(84, 55, joyy, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+
+	joyx_int = read_joyx();
+	joyy_int = read_joyy();
+
+	sprintf(joyx, "%d", joyx_int);
+	sprintf(joyy, "%d", joyy_int);
+
+	GUI_DisString_EN(20, 55, joyx, &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(84, 55, joyy, &Font12, GUI_BACKGROUND, WHITE);
+
+	GUI_DisString_EN(20, 110, pot1, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+	GUI_DisString_EN(84, 110, pot2, &Font12, GUI_BACKGROUND, GUI_BACKGROUND);
+
+	pot1_int = read_POT1();
+	pot2_int = read_POT2();
+
+	sprintf(pot1, "%d", pot1_int);
+	sprintf(pot2, "%d", pot2_int);
+
+	GUI_DisString_EN(20, 110, pot1, &Font12, GUI_BACKGROUND, WHITE);
+	GUI_DisString_EN(84, 110, pot2, &Font12, GUI_BACKGROUND, WHITE);
+
+	joyx_min = min(joyx_min, joyx_int);
+	joyy_min = min(joyy_min, joyy_int);
+	pot1_min = min(pot1_min, pot1_int);
+	pot2_min = min(pot2_min, pot2_int);
+
+	joyx_max = max(joyx_max, joyx_int);
+	joyy_max = max(joyy_max, joyy_int);
+	pot1_max = max(pot1_max, pot1_int);
+	pot2_max = max(pot2_max, pot2_int);
+
+	XTmrCtr_Start(&TMR_FAST, 0);
+}
+
+int max(int num1, int num2){
+	if (num1 < num2){
+		return num2;
+	}
+	else{
+		return num1;
+	}
+}
+
+int min(int num1, int num2){
+	if (num1 > num2){
+		return num2;
+	}
+	else{
+		return num1;
+	}
+}
+
+void timer_next(void *CallbackRef){
+	timer_next_done = 1;
+}
+
+void btn_z0_slow_mode(void *CallbackRef){
+	GUI_DisString_EN(2, 26, "BTN0", &Font16, GUI_BACKGROUND, GREEN); //BTN0
+}
+
+void btn_z1_slow_mode(void *CallbackRef){
+	GUI_DisString_EN(2, 45, "BTN1", &Font16, GUI_BACKGROUND, GREEN); //BTN1
+}
+
+void btn_z2_slow_mode(void *CallbackRef){
+	GUI_DisString_EN(2, 64, "BTN2", &Font16, GUI_BACKGROUND, GREEN); //BTN2
+}
+
+void btn_z3_slow_mode(void *CallbackRef){
+	GUI_DisString_EN(2, 83, "BTN3", &Font16, GUI_BACKGROUND, GREEN); //BTN3
+}
+
+void btn_b0_slow_mode(void *CallbackRef){
+	GUI_DisString_EN(84, 26, "BTN0", &Font16, GUI_BACKGROUND, GREEN); //BTN0
+}
+
+void btn_b1_slow_mode(void *CallbackRef){
+	GUI_DisString_EN(84, 45, "BTN1", &Font16, GUI_BACKGROUND, GREEN); //BTN1
+}
+
+void btn_bjs_slow_mode(void *CallbackRef){
+	GUI_DisString_EN(84, 64, "B JS", &Font16, GUI_BACKGROUND, GREEN); //BTN JS
 }
